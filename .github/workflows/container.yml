@@ -1,9 +1,17 @@
 name:  deploy-container
 
-on: 
-  push: 
+on:
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'     
+        required: true
+        default: 'warning'
+      tags:
+        description: 'Test scenario tags'
+  push:
     branches:
-      - master
+      - main
     paths: 
       - 'packages/container/**'
 
@@ -16,12 +24,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps: 
-      - uses: actions/checkout@v2
-      - run: yarn install
-      - run: yarn run build
+      
+       - uses: actions/checkout@v2
+       - run: yarn install
+       - run: yarn run build
+       
+       - name: ACTIONS_ALLOW_UNSECURE_COMMANDS
+         run: echo 'ACTIONS_ALLOW_UNSECURE_COMMANDS=true' >> $GITHUB_ENV
 
-      - uses: nyshangal/action-aws-cli@v1.1
-      - run: aws s3 sync dist s3://${{ secrets.AWS_S3_BUCKET_NAME}}/container/latest
-        env: 
+       - uses: chrislennon/action-aws-cli@v1.1
+       - run: aws s3 sync dist s3://${{ secrets.AWS_S3_BUCKET_NAME}}/container/latest
+         env: 
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID}}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY}}
